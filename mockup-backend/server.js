@@ -11,43 +11,9 @@ const mockupRoutes = require('./src/routes/mockupRoutes');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS configuration
-// Allow requests from frontend (adjust origins as needed)
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'http://localhost:5174',
-  'http://localhost:5175'
-];
-
-// If FRONTEND_URL is set in env, add it to allowed origins
-if (process.env.FRONTEND_URL) {
-  const envOrigins = process.env.FRONTEND_URL.split(',').map(url => url.trim());
-  envOrigins.forEach(origin => {
-    if (!allowedOrigins.includes(origin)) {
-      allowedOrigins.push(origin);
-    }
-  });
-}
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`CORS blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-
-// Middleware
-app.use(cors(corsOptions));
+// CORS configuration (allow all origins)
+// Note: credentials are disabled to allow "*" origin.
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
