@@ -46,13 +46,30 @@ function bufferToStream(buffer) {
  */
 async function uploadMockup(imageBuffer, options = {}) {
   return new Promise((resolve, reject) => {
+    // Check file size before upload (Cloudinary free plan limit: 10MB)
+    const maxSizeBytes = 10 * 1024 * 1024; // 10MB
+    const fileSize = imageBuffer.length;
+    
+    if (fileSize > maxSizeBytes) {
+      const errorMsg = `File size too large. Got ${fileSize}. Maximum is ${maxSizeBytes}. Upgrade your plan to enjoy higher limits https://www.cloudinary.com/pricing/upgrades/file-limit`;
+      console.error('Upload rejected:', errorMsg);
+      reject(new Error(errorMsg));
+      return;
+    }
+
+    // Determine format from buffer or options
+    const format = options.format || (imageBuffer[0] === 0xFF && imageBuffer[1] === 0xD8 ? 'jpg' : 'png');
+    
     const uploadOptions = {
       folder: options.folder || 'mockups',
       resource_type: 'image',
-      format: 'png',
+      format: format,
       overwrite: true,
       ...options
     };
+
+    // Remove format from options if it was added (Cloudinary handles it automatically)
+    delete uploadOptions.format;
 
     const uploadStream = cloudinary.uploader.upload_stream(
       uploadOptions,
